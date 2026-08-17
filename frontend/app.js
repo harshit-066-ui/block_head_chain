@@ -12,14 +12,56 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 
 
 // --------------------------------------------------
-// Smart contract
+// Blockchain configuration
 // --------------------------------------------------
 
-// Replace this with your latest deployed contract
-// address if you deploy the contract again.
-
+// Current Ganache-deployed contract
 const CONTRACT_ADDRESS =
-    "0xd9145CCE52D386f254917e481eB44e9943F39138";
+    "..............";
+
+// Local Ganache RPC
+const GANACHE_RPC =
+    "http://127.0.0.1:8545";
+
+
+// --------------------------------------------------
+// Contract ABI
+// --------------------------------------------------
+//
+// This is the minimum ABI required by the employer
+// verification frontend.
+//
+// verifyCertificate() must return:
+// "VERIFIED"
+// "REVOKED"
+// "NOT VERIFIED"
+//
+
+const CONTRACT_ABI = [
+    {
+        inputs: [
+            {
+                internalType: "string",
+                name: "id",
+                type: "string"
+            }
+        ],
+
+        name: "verifyCertificate",
+
+        outputs: [
+            {
+                internalType: "string",
+                name: "",
+                type: "string"
+            }
+        ],
+
+        stateMutability: "view",
+
+        type: "function"
+    }
+];
 
 
 // --------------------------------------------------
@@ -157,13 +199,10 @@ scanButton.addEventListener(
             );
 
 
-            /*
-             * Look for certificate IDs such as:
-             *
-             * CERT001
-             * CERT002
-             * CERT123
-             */
+            // Look for certificate IDs such as:
+            // CERT001
+            // CERT002
+            // CERT123
 
             const match =
                 text.match(
@@ -288,7 +327,7 @@ async function extractPdfText(file) {
 
 
 // --------------------------------------------------
-// Verify certificate
+// Verify certificate on blockchain
 // --------------------------------------------------
 
 verifyButton.addEventListener(
@@ -308,105 +347,61 @@ verifyButton.addEventListener(
         try {
 
             // --------------------------------------
-            // Check MetaMask
-            // --------------------------------------
-
-            if (!window.ethereum) {
-
-                throw new Error(
-                    "MetaMask is required for blockchain verification."
-                );
-            }
-
-
-            // --------------------------------------
-            // Load ethers.js
+            // Load ethers.js from local installation
             // --------------------------------------
 
             const {
                 ethers
             } = await import(
-                "https://cdn.jsdelivr.net/npm/ethers@6.13.2/+esm"
+                "ethers"
             );
 
 
             // --------------------------------------
-            // Connect to MetaMask
+            // Connect directly to Ganache
             // --------------------------------------
 
             const provider =
-                new ethers.BrowserProvider(
-                    window.ethereum
+                new ethers.JsonRpcProvider(
+                    GANACHE_RPC
                 );
 
 
-            await provider.send(
-                "eth_requestAccounts",
-                []
+            // --------------------------------------
+            // Check blockchain connection
+            // --------------------------------------
+
+            const network =
+                await provider.getNetwork();
+
+
+            console.log(
+                "Connected to blockchain:",
+                network
             );
 
 
             // --------------------------------------
-            // Contract ABI
-            // --------------------------------------
-
-            /*
-             * This ABI assumes your final contract's
-             * verifyCertificate() returns a STRING
-             * such as:
-             *
-             * "VERIFIED"
-             * "REVOKED"
-             * "NOT VERIFIED"
-             */
-
-            const contractABI = [
-
-                {
-                    inputs: [
-                        {
-                            internalType: "string",
-                            name: "id",
-                            type: "string"
-                        }
-                    ],
-
-                    name:
-                        "verifyCertificate",
-
-                    outputs: [
-                        {
-                            internalType: "string",
-                            name: "",
-                            type: "string"
-                        }
-                    ],
-
-                    stateMutability:
-                        "view",
-
-                    type:
-                        "function"
-                }
-
-            ];
-
-
-            // --------------------------------------
-            // Contract instance
+            // Create contract instance
             // --------------------------------------
 
             const contract =
                 new ethers.Contract(
                     CONTRACT_ADDRESS,
-                    contractABI,
+                    CONTRACT_ABI,
                     provider
                 );
 
 
             // --------------------------------------
-            // Blockchain verification
+            // Verify certificate
             // --------------------------------------
+
+            console.log(
+                "Checking certificate:",
+                detectedCertificateId
+            );
+
 
             const status =
                 await contract.verifyCertificate(
@@ -419,6 +414,10 @@ verifyButton.addEventListener(
                 status
             );
 
+
+            // --------------------------------------
+            // Display result
+            // --------------------------------------
 
             showBlockchainResult(
                 status
@@ -438,8 +437,9 @@ verifyButton.addEventListener(
 
 
             showError(
-                error.message ||
-                "Blockchain verification failed."
+                getBlockchainErrorMessage(
+                    error
+                )
             );
         }
 
@@ -579,6 +579,51 @@ function showBlockchainResult(status) {
 
 
 // --------------------------------------------------
+// Blockchain error handling
+// --------------------------------------------------
+
+function getBlockchainErrorMessage(error) {
+
+    console.error(
+        "Full blockchain error:",
+        error
+    );
+
+
+    if (
+        error.message &&
+        error.message.includes(
+            "ECONNREFUSED"
+        )
+    ) {
+
+        return (
+            "Could not connect to Ganache. " +
+            "Please make sure Ganache is running on 127.0.0.1:8545."
+        );
+    }
+
+
+    if (
+        error.code ===
+        "NETWORK_ERROR"
+    ) {
+
+        return (
+            "Blockchain network connection failed. " +
+            "Please check that Ganache is running."
+        );
+    }
+
+
+    return (
+        "Blockchain verification failed. " +
+        "Check that Ganache is running and that the contract address is correct."
+    );
+}
+
+
+// --------------------------------------------------
 // UI functions
 // --------------------------------------------------
 
@@ -601,6 +646,10 @@ function showLoading(show) {
 }
 
 
+// --------------------------------------------------
+// Show error
+// --------------------------------------------------
+
 function showError(message) {
 
     errorBox.textContent =
@@ -613,6 +662,10 @@ function showError(message) {
 }
 
 
+// --------------------------------------------------
+// Clear error
+// --------------------------------------------------
+
 function clearError() {
 
     errorBox.classList.add(
@@ -620,6 +673,10 @@ function clearError() {
     );
 }
 
+
+// --------------------------------------------------
+// Clear messages
+// --------------------------------------------------
 
 function clearMessages() {
 
@@ -639,6 +696,20 @@ function clearMessages() {
 }
 
 
+// --------------------------------------------------
+// Application startup
+// --------------------------------------------------
+
 console.log(
     "Academic Certificate Verification loaded."
+);
+
+console.log(
+    "Ganache RPC:",
+    GANACHE_RPC
+);
+
+console.log(
+    "Contract:",
+    CONTRACT_ADDRESS
 );
