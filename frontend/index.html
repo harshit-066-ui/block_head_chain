@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Academic Certificate Verification</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <div class="card">
+
+            <h1>Academic Certificate Verification</h1>
+
+            <p class="subtitle">
+                Upload a certificate PDF to verify its authenticity.
+            </p>
+
+            <div class="upload-area">
+
+                <label for="pdfInput">
+                    Select Certificate PDF
+                </label>
+
+                <input
+                    type="file"
+                    id="pdfInput"
+                    accept=".pdf,application/pdf"
+                >
+
+                <p id="fileInfo" class="file-info hidden"></p>
+
+            </div>
+
+
+            <button
+                id="scanButton"
+                disabled
+            >
+                Scan Certificate
+            </button>
+
+
+            <div
+                id="loading"
+                class="loading hidden"
+            >
+                Reading certificate...
+            </div>
+
+
+            <div
+                id="certificateSection"
+                class="certificate-section hidden"
+            >
+
+                <p>Certificate ID detected:</p>
+
+                <div
+                    id="certificateId"
+                    class="certificate-id"
+                >
+                </div>
+
+                <button
+                    id="verifyButton"
+                >
+                    Verify Certificate
+                </button>
+
+            </div>
+
+
+            <div
+                id="result"
+                class="result hidden"
+            >
+
+                <div
+                    id="resultIcon"
+                    class="result-icon"
+                >
+                </div>
+
+                <h2 id="resultStatus"></h2>
+
+                <div id="resultDetails"></div>
+
+            </div>
+
+
+            <div
+                id="error"
+                class="error hidden"
+            >
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- Application -->
+    <script type="module" src="app.js"></script>
+
+</body>
+
+</html>
