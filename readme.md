@@ -1,4 +1,4 @@
-Sure. Here is the README.md without the cost section. Everything else remains the same.
+
 
 # Blockchain-Based Academic Certificate Verification
 
@@ -393,7 +393,7 @@ The prototype provides three clear verification results:
 VERIFIED
 REVOKED
 NOT VERIFIED
-This demonstrates the basic feasibility of blockchain-based academic credential verification while keeping the implementation simple and suitable for an academic capstone project.
+
 
 👨‍💻 Project Information
 Project: Blockchain-Based Academic Certificate Verification
